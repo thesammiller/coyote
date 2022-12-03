@@ -29,7 +29,7 @@ namespace Microsoft.Coyote.Samples.BoundedBuffer
         {
             lock (this.SyncObject)
             {
-                while (this.Occupied == this.Buffer.Length && !(this.Conditional && Interlocked.Exchange(ref this.notFull, 1) == 1))
+                while (this.Occupied == this.Buffer.Length && !(this.Conditional && Interlocked.Exchange(ref this.notFull, 1) == 0))
                 {
                     Monitor.Wait(this.SyncObject);
                 }
@@ -53,7 +53,7 @@ namespace Microsoft.Coyote.Samples.BoundedBuffer
             object result = null;
             lock (this.SyncObject)
             {
-                while (this.Occupied == 0 && !(this.Conditional && Interlocked.Exchange(ref this.notEmpty, 1) == 1))
+                while (this.Occupied == 0 && !(this.Conditional && Interlocked.Exchange(ref this.notEmpty, 1) == 0))
                 {
                     Monitor.Wait(this.SyncObject);
                 }
