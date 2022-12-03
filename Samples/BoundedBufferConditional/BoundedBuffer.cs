@@ -29,8 +29,7 @@ namespace Microsoft.Coyote.Samples.BoundedBuffer
         {
             lock (this.SyncObject)
             {
-                while (this.Occupied == this.Buffer.Length ||
-                (this.Conditional && Interlocked.Exchange(ref this.notFull, 1) == 1))
+                while (this.Occupied == this.Buffer.Length && !(this.Conditional && Interlocked.Exchange(ref this.notFull, 1) == 1))
                 {
                     Monitor.Wait(this.SyncObject);
                 }
@@ -39,12 +38,13 @@ namespace Microsoft.Coyote.Samples.BoundedBuffer
                 this.PutAt %= this.Buffer.Length;
                 this.Buffer[this.PutAt++] = x;
                 Monitor.Pulse(this.SyncObject);
-            }
+                // Interlocked.Exchange(ref this.notEmpty, 0);
 
-            if (this.Conditional)
-            {
-                 // Release the lock
-                Interlocked.Exchange(ref this.notEmpty, 0);
+                if (this.Conditional)
+                {
+                        // Release the lock
+                    Interlocked.Exchange(ref this.notEmpty, 0);
+                }
             }
         }
 
@@ -53,8 +53,7 @@ namespace Microsoft.Coyote.Samples.BoundedBuffer
             object result = null;
             lock (this.SyncObject)
             {
-                while (this.Occupied == 0 ||
-                (this.Conditional && Interlocked.Exchange(ref this.notEmpty, 1) == 1))
+                while (this.Occupied == 0 && !(this.Conditional && Interlocked.Exchange(ref this.notEmpty, 1) == 1))
                 {
                     Monitor.Wait(this.SyncObject);
                 }
@@ -63,12 +62,13 @@ namespace Microsoft.Coyote.Samples.BoundedBuffer
                 this.TakeAt %= this.Buffer.Length;
                 result = this.Buffer[this.TakeAt++];
                 Monitor.Pulse(this.SyncObject);
-            }
+                // Interlocked.Exchange(ref this.notFull, 0);
 
-            if (this.Conditional)
-            {
-                 // Release the lock
-                Interlocked.Exchange(ref this.notFull, 0);
+                if (this.Conditional)
+                {
+                    // Release the lock
+                    Interlocked.Exchange(ref this.notFull, 0);
+                }
             }
 
             return result;
